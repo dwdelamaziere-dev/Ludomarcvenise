@@ -1,0 +1,950 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Venise — le week-end</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<style>
+:root{
+  --ink:#0E2B33;
+  --ink-soft:#17414C;
+  --paper:#E7EEE9;
+  --paper-hi:#F3F7F4;
+  --lagoon:#1F7A6D;
+  --buoy:#E0A526;
+  --brick:#A9452F;
+  --muted:#61787A;
+  --rule:#C6D5CC;
+  --sans:"Optima","Gill Sans","Gill Sans MT","Trebuchet MS",system-ui,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);font-size:17px;line-height:1.65;
+}
+h1,h2,h3,h4,.sans{font-family:var(--sans);font-weight:600;letter-spacing:.01em}
+h2{font-size:1.5rem;line-height:1.2;margin:0 0 .2em}
+h3{font-size:1.08rem;margin:1.8em 0 .5em}
+p{margin:0 0 1em}
+a{color:var(--lagoon)}
+.wrap{max-width:920px;margin:0 auto;padding:0 20px}
+.narrow{max-width:68ch}
+
+/* ---------- hero ---------- */
+.hero{background:var(--ink);color:var(--paper-hi);padding:38px 0 30px;border-bottom:6px solid var(--lagoon)}
+.hero h1{font-size:clamp(2.6rem,9vw,4.4rem);line-height:.95;margin:0;letter-spacing:-.02em}
+.hero .sub{font-family:var(--sans);font-size:.95rem;color:#9FBDBB;margin:.6em 0 0}
+.hero .lede{max-width:52ch;margin:1.1em 0 0;color:#DCE8E4}
+
+/* route line */
+.route{list-style:none;display:flex;gap:0;margin:30px 0 0;padding:0;position:relative}
+.route:before{content:"";position:absolute;left:6%;right:6%;top:11px;height:2px;background:#2F5C63}
+.route li{flex:1;position:relative;text-align:center;padding:0 4px}
+.route .dot{width:14px;height:14px;border-radius:50%;background:var(--paper-hi);border:4px solid var(--ink);
+  display:block;margin:5px auto 10px;position:relative;z-index:1;box-shadow:0 0 0 2px var(--lagoon)}
+.route li.opt .dot{box-shadow:0 0 0 2px var(--buoy);background:var(--ink);border-color:var(--ink)}
+.route .when{font-family:var(--sans);font-size:.74rem;color:#8FB2B0;display:block}
+.route .what{font-family:var(--sans);font-size:.85rem;color:var(--paper-hi);display:block;line-height:1.25}
+@media(max-width:640px){
+  .route{flex-direction:column;gap:14px}
+  .route:before{left:7px;right:auto;top:8px;bottom:8px;width:2px;height:auto}
+  .route li{display:flex;gap:12px;text-align:left;padding:0}
+  .route .dot{margin:2px 0 0;flex:0 0 auto}
+}
+
+/* identity */
+.me{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:26px;
+  border-top:1px solid #2F5C63;padding-top:16px;font-family:var(--sans);font-size:.9rem;color:#9FBDBB}
+.me input{flex:1;min-width:170px;max-width:280px}
+
+/* ---------- nav ---------- */
+nav.tabs{position:sticky;top:0;z-index:900;background:var(--ink-soft);
+  border-bottom:1px solid rgba(255,255,255,.12);overflow-x:auto;-webkit-overflow-scrolling:touch}
+nav.tabs .wrap{display:flex;gap:2px;padding:0 12px}
+nav.tabs button{background:none;border:0;color:#A9C6C4;font-family:var(--sans);font-size:.92rem;
+  padding:13px 14px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent}
+nav.tabs button:hover{color:#fff}
+nav.tabs button[aria-selected="true"]{color:#fff;border-bottom-color:var(--buoy)}
+nav.tabs .count{font-size:.75rem;color:#7FA3A1;margin-left:4px}
+
+/* ---------- sections ---------- */
+main{padding:34px 0 90px}
+section[role=tabpanel]{display:none}
+section[role=tabpanel].on{display:block}
+.intro{color:var(--muted);max-width:62ch}
+
+.panel{background:var(--paper-hi);border:1px solid var(--rule);border-radius:3px;padding:20px 22px;margin:18px 0}
+.panel.flush{padding:0;overflow:hidden}
+
+/* forms */
+label{display:block;font-family:var(--sans);font-size:.83rem;color:var(--muted);margin:0 0 3px}
+input[type=text],input[type=date],input[type=time],input[type=number],select,textarea{
+  width:100%;padding:9px 10px;font:inherit;font-size:.95rem;background:#fff;
+  border:1px solid var(--rule);border-radius:2px;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--buoy);outline-offset:1px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}}
+fieldset{border:1px solid var(--rule);border-radius:2px;padding:12px 14px;margin:0}
+legend{font-family:var(--sans);font-size:.83rem;color:var(--muted);padding:0 6px}
+.radios{display:flex;flex-wrap:wrap;gap:14px}
+.radios label{display:flex;align-items:center;gap:6px;font-size:.95rem;color:var(--ink);font-family:var(--serif);margin:0;cursor:pointer}
+.radios input{accent-color:var(--lagoon)}
+
+.btn{font-family:var(--sans);font-size:.92rem;padding:10px 18px;border-radius:2px;cursor:pointer;
+  background:var(--lagoon);color:#fff;border:1px solid var(--lagoon)}
+.btn:hover{background:#186054;border-color:#186054}
+.btn.ghost{background:transparent;color:var(--lagoon)}
+.btn.ghost:hover{background:rgba(31,122,109,.08)}
+.btn.small{padding:6px 11px;font-size:.82rem}
+.btn.danger{background:transparent;color:var(--brick);border-color:#D9B6AC}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.hint{font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+
+/* deadlines */
+.dl{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 0}
+.dl div{flex:1;min-width:220px;border-left:3px solid var(--buoy);padding:2px 0 2px 12px}
+.dl b{font-family:var(--sans);display:block;font-size:.95rem}
+.dl span{font-family:var(--sans);font-size:.82rem;color:var(--muted)}
+.dl.late div{border-left-color:var(--brick)}
+
+/* map */
+#map{height:460px;background:#D7E3DC}
+@media(max-width:640px){#map{height:340px}}
+.maptools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 14px;border-top:1px solid var(--rule);background:var(--paper-hi)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-family:var(--sans);font-size:.82rem;color:var(--muted);margin-top:12px}
+.legend i{width:11px;height:11px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:-1px}
+.pin-lagoon{background:var(--lagoon)}.pin-buoy{background:var(--buoy)}.pin-ink{background:var(--ink)}
+.leaflet-container{font-family:var(--sans)}
+
+/* tables / lists */
+table{width:100%;border-collapse:collapse;font-size:.93rem}
+th{font-family:var(--sans);font-size:.78rem;color:var(--muted);text-align:left;font-weight:600;
+  border-bottom:1px solid var(--rule);padding:7px 10px}
+td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.scroller{overflow-x:auto}
+.yes{color:var(--lagoon)}.no{color:var(--brick)}.maybe{color:var(--buoy)}
+.tag{font-family:var(--sans);font-size:.72rem;border:1px solid var(--rule);border-radius:2px;padding:1px 6px;color:var(--muted)}
+
+.stats{display:flex;flex-wrap:wrap;gap:26px;margin:0 0 6px}
+.stats div{min-width:96px}
+.stats b{font-family:var(--sans);font-size:2rem;line-height:1;display:block}
+.stats span{font-family:var(--sans);font-size:.8rem;color:var(--muted)}
+
+.team{border:1px solid var(--rule);border-radius:2px;padding:12px 14px;background:#fff}
+.team h4{margin:0 0 6px;font-size:.95rem}
+.team ol{margin:0;padding-left:18px;font-size:.92rem}
+
+/* photos */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px;margin-top:6px}
+.shot{background:#fff;border:1px solid var(--rule);border-radius:2px;overflow:hidden;display:flex;flex-direction:column}
+.shot img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:zoom-in;background:#D7E3DC}
+.shot .cap{padding:8px 10px;font-size:.85rem;line-height:1.35;flex:1}
+.shot .by{font-family:var(--sans);font-size:.75rem;color:var(--muted);display:block;margin-top:3px}
+.shot .row{display:flex;gap:6px;padding:0 8px 8px}
+.queue{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.qitem{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--rule);padding:8px}
+.qitem img{width:76px;height:58px;object-fit:cover;flex:0 0 auto;background:#D7E3DC}
+.qitem input{font-size:.9rem}
+.lightbox{position:fixed;inset:0;background:rgba(8,24,28,.94);z-index:1000;display:none;
+  align-items:center;justify-content:center;flex-direction:column;padding:20px;gap:14px}
+.lightbox.on{display:flex}
+.lightbox img{max-width:100%;max-height:76vh;object-fit:contain;background:#0E2B33}
+.lightbox p{color:#DCE8E4;text-align:center;max-width:60ch;margin:0}
+
+/* playlist */
+.track{display:flex;gap:12px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--rule)}
+.track .n{font-family:var(--sans);font-size:.8rem;color:var(--muted);flex:0 0 22px}
+.track .t{flex:1}
+.track .t b{font-weight:600}
+.track .why{display:block;color:var(--muted);font-size:.9rem}
+
+.note{border-left:3px solid var(--rule);padding-left:14px;color:var(--muted);font-size:.92rem}
+.warn{background:#FBF0E4;border:1px solid #E7CFA6;padding:12px 14px;border-radius:2px;font-size:.9rem;margin:14px 0}
+.empty{color:var(--muted);font-style:italic;padding:14px 0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:var(--ink);color:#fff;
+  font-family:var(--sans);font-size:.9rem;padding:11px 18px;border-radius:2px;z-index:1100;opacity:0;
+  pointer-events:none;transition:opacity .18s}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Venise</h1>
+    <p class="sub">Vendredi 25 — dimanche 27 septembre 2026, chez Marc &amp; Ludovic</p>
+    <p class="lede">Vous avez tous dit oui pour l'apéritif et le dîner. Il reste cinq choses&nbsp;: où vous dormez, quand vous arrivez, si vous courez la chasse au trésor et si vous venez à Murano, vos photos et vos trois morceaux.</p>
+
+    <ol class="route">
+      <li><span class="dot"></span><span class="when">Vendredi 25, dans la journée</span><span class="what">Arrivée — Marco Polo ou Santa Lucia</span></li>
+      <li><span class="dot"></span><span class="when">Vendredi 25 au soir</span><span class="what">Apéritif</span></li>
+      <li class="opt"><span class="dot"></span><span class="when">Samedi 26, 11h</span><span class="what">Chasse au trésor</span></li>
+      <li><span class="dot"></span><span class="when">Samedi 26 au soir</span><span class="what">Dîner, photos et musique</span></li>
+      <li class="opt"><span class="dot"></span><span class="when">Dimanche 27, 12h</span><span class="what">Atelier de Silvia, Murano</span></li>
+    </ol>
+
+    <div class="me">
+      <span>Vous êtes&nbsp;:</span>
+      <input id="meName" type="text" placeholder="Prénom et nom" autocomplete="name">
+      <button class="btn small" id="meSave">Enregistrer</button>
+      <span id="meEcho"></span>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap" role="tablist">
+    <button role="tab" data-tab="programme" aria-selected="true">Programme</button>
+    <button role="tab" data-tab="carte" aria-selected="false">Carte</button>
+    <button role="tab" data-tab="reponses" aria-selected="false">Vos réponses</button>
+    <button role="tab" data-tab="recap" aria-selected="false">Récapitulatif <span class="count" id="cP"></span></button>
+    <button role="tab" data-tab="photos" aria-selected="false">Photos <span class="count" id="cF"></span></button>
+    <button role="tab" data-tab="playlist" aria-selected="false">Playlist <span class="count" id="cM"></span></button>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <!-- PROGRAMME -->
+  <section role="tabpanel" id="tab-programme" class="on">
+    <h2>Ce qu'on attend de vous</h2>
+    <p class="intro narrow">Cinq réponses, deux échéances. Tout se remplit sur cette page&nbsp;: ce que vous saisissez est visible par les autres invités.</p>
+
+    <div id="sysWarn"></div>
+    <div class="dl" id="deadlines"></div>
+
+    <div class="panel narrow">
+      <h3 style="margin-top:0">1 — 3. Logement, trajets, chasse au trésor et Murano</h3>
+      <p>La chasse au trésor se joue en équipes de sept ou huit, avec un itinéraire et un jeu de matériel par équipe&nbsp;: impossible de composer les groupes sans savoir qui court. Pour l'atelier de Silvia, il faut juste un nombre à lui annoncer.</p>
+      <p class="note">Sans réponse d'ici le vendredi 11 septembre, on vous compte partant pour les deux.</p>
+      <div class="actions"><button class="btn" data-go="reponses">Remplir vos réponses</button></div>
+    </div>
+
+    <div class="panel narrow">
+      <h3 style="margin-top:0">4. Fouillez vos tiroirs</h3>
+      <p>Samedi 26 au soir, pendant le dîner, on projettera des photos. Cinq au maximum, n'importe quelle époque, de préférence celles où vous êtes aussi&nbsp;: c'est votre histoire avec nous qui intéresse la salle. Plus la coupe de cheveux est discutable, mieux c'est.</p>
+      <p>Une vraie photo scannée vaut mieux qu'une capture d'écran floue — ça se projette sur grand écran. Une ligne de légende suffit&nbsp;: l'année approximative et le lieu, même «&nbsp;quelque part vers 2003, aucune idée où&nbsp;».</p>
+      <div class="actions"><button class="btn" data-go="photos">Envoyer vos photos</button></div>
+    </div>
+
+    <div class="panel narrow">
+      <h3 style="margin-top:0">5. Et la musique</h3>
+      <p>Trois morceaux par personne&nbsp;: celui qui vous fera quitter votre chaise, celui que vous associez à l'un de nous, ou celui dont vous n'êtes pas particulièrement fier mais qui fonctionne à tous les coups.</p>
+      <div class="actions"><button class="btn" data-go="playlist">Proposer des morceaux</button></div>
+    </div>
+  </section>
+
+  <!-- CARTE -->
+  <section role="tabpanel" id="tab-carte">
+    <h2>La carte</h2>
+    <p class="intro narrow">Les points d'arrivée et Murano sont placés d'après leurs coordonnées réelles. Les lieux de l'apéritif, de la chasse et du dîner ne figuraient pas dans le mail&nbsp;: à Marc ou Ludovic de les poser sur la carte. Les logements apparaissent dès que vous remplissez vos réponses.</p>
+
+    <div class="panel flush">
+      <div id="map"></div>
+      <div class="maptools">
+        <button class="btn small" id="pinHome">Placer mon logement</button>
+        <select id="venueSel" style="width:auto;max-width:240px"><option value="">Un lieu du programme…</option></select>
+        <button class="btn small ghost" id="pinVenue">Placer ce lieu</button>
+        <span class="hint" id="pinHint">Cliquez sur un bouton, puis sur la carte.</span>
+      </div>
+    </div>
+    <div id="mapWarn"></div>
+
+    <div class="legend">
+      <span><i class="pin-lagoon"></i>Rendez-vous du week-end</span>
+      <span><i class="pin-buoy"></i>Arrivées et départs</span>
+      <span><i class="pin-ink"></i>Logements des invités</span>
+    </div>
+
+    <h3>Les lieux</h3>
+    <div class="scroller"><table id="venueTable"></table></div>
+  </section>
+
+  <!-- REPONSES -->
+  <section role="tabpanel" id="tab-reponses">
+    <h2>Vos réponses</h2>
+    <p class="intro narrow">Une fiche par personne. Vous pouvez revenir la modifier autant de fois que vous voulez — mettez juste le même nom.</p>
+
+    <form class="panel" id="pForm">
+      <div class="grid g2">
+        <div><label for="f_name">Prénom et nom</label><input id="f_name" type="text" required autocomplete="name"></div>
+        <div><label for="f_hotel">Hôtel ou appartement</label><input id="f_hotel" type="text" placeholder="Le nom suffit"></div>
+      </div>
+
+      <div class="grid g2" style="margin-top:14px">
+        <div><label for="f_area">Quartier</label>
+          <select id="f_area"><option value="">— à préciser —</option></select></div>
+        <div><label for="f_addr">Adresse ou repère</label><input id="f_addr" type="text" placeholder="Ex. Calle Larga, près du Campo San Barnaba"></div>
+      </div>
+
+      <div class="grid g2" style="margin-top:18px">
+        <fieldset><legend>Arrivée</legend>
+          <div class="grid g2">
+            <div><label for="f_ad">Date</label><input id="f_ad" type="date"></div>
+            <div><label for="f_at">Heure</label><input id="f_at" type="time"></div>
+          </div>
+          <div class="grid g2" style="margin-top:10px">
+            <div><label for="f_ap">Par où</label><select id="f_ap"></select></div>
+            <div><label for="f_an">Vol ou train</label><input id="f_an" type="text" placeholder="AF1226, FR9821…"></div>
+          </div>
+        </fieldset>
+        <fieldset><legend>Départ</legend>
+          <div class="grid g2">
+            <div><label for="f_dd">Date</label><input id="f_dd" type="date"></div>
+            <div><label for="f_dt">Heure</label><input id="f_dt" type="time"></div>
+          </div>
+          <div class="grid g2" style="margin-top:10px">
+            <div><label for="f_dp">Par où</label><select id="f_dp"></select></div>
+            <div><label for="f_dn">Vol ou train</label><input id="f_dn" type="text"></div>
+          </div>
+        </fieldset>
+      </div>
+
+      <p class="hint" style="margin:10px 0 0">Beaucoup arriveront le vendredi 25 et repartiront le dimanche 27 — indiquez vos vraies dates si vous étirez le séjour.</p>
+
+      <div class="grid g2" style="margin-top:18px">
+        <fieldset><legend>Chasse au trésor — samedi 26 septembre, 11h</legend>
+          <div class="radios">
+            <label><input type="radio" name="hunt" value="oui">J'en suis</label>
+            <label><input type="radio" name="hunt" value="non">Je passe</label>
+            <label><input type="radio" name="hunt" value="?">Je ne sais pas encore</label>
+          </div>
+        </fieldset>
+        <fieldset><legend>Atelier de Silvia — Murano, dimanche 27 septembre, 12h</legend>
+          <div class="radios">
+            <label><input type="radio" name="work" value="oui">J'en suis</label>
+            <label><input type="radio" name="work" value="non">Je passe</label>
+            <label><input type="radio" name="work" value="?">Je ne sais pas encore</label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div style="margin-top:14px"><label for="f_note">À signaler à Marc et Ludovic</label>
+        <textarea id="f_note" placeholder="Un enfant, un régime, un train qui arrive à point d'heure…"></textarea></div>
+
+      <div class="actions">
+        <button class="btn" type="submit">Enregistrer ma fiche</button>
+        <button class="btn ghost" type="button" id="pClear">Vider le formulaire</button>
+        <span class="hint" id="pFormHint"></span>
+      </div>
+    </form>
+
+    <h3>Les fiches déjà remplies</h3>
+    <div class="scroller"><table id="pTable"></table></div>
+  </section>
+
+  <!-- RECAP -->
+  <section role="tabpanel" id="tab-recap">
+    <h2>Récapitulatif</h2>
+    <p class="intro narrow">Ce qu'il faut annoncer&nbsp;: le nombre pour Silvia, les équipes pour la chasse, et qui atterrit en même temps que qui.</p>
+    <div class="panel"><div class="stats" id="stats"></div></div>
+
+    <h3>Chasse au trésor — samedi 26 à 11h</h3>
+    <div id="huntBox"></div>
+
+    <h3>Atelier de Silvia — dimanche 27 à 12h</h3>
+    <div id="workBox"></div>
+
+    <h3>Arrivées — qui peut partager un bateau</h3>
+    <div id="arrBox"></div>
+
+    <h3>Départs</h3>
+    <div id="depBox"></div>
+
+    <h3>Qui dort près de qui</h3>
+    <div id="areaBox"></div>
+
+    <h3>À relancer</h3>
+    <div id="chaseBox"></div>
+  </section>
+
+  <!-- PHOTOS -->
+  <section role="tabpanel" id="tab-photos">
+    <h2>Photos</h2>
+    <p class="intro narrow">Cinq au maximum par personne, avec une ligne de légende&nbsp;: l'année approximative et le lieu. Les images sont réduites pour tenir sur cette page — envoyez aussi les fichiers d'origine par mail si vous voulez la meilleure projection possible.</p>
+
+    <div class="panel">
+      <label for="fileIn">Choisir des photos</label>
+      <input id="fileIn" type="file" accept="image/*" multiple>
+      <div class="queue" id="queue"></div>
+      <div class="actions">
+        <button class="btn" id="upBtn" disabled>Envoyer les photos</button>
+        <span class="hint" id="upHint"></span>
+      </div>
+    </div>
+
+    <h3>Ce qui sera projeté samedi 26</h3>
+    <div class="actions" style="margin-top:0"><button class="btn ghost small" id="dlAll">Tout télécharger</button></div>
+    <div class="gal" id="gal"></div>
+  </section>
+
+  <!-- PLAYLIST -->
+  <section role="tabpanel" id="tab-playlist">
+    <h2>Playlist</h2>
+    <p class="intro narrow">Trois morceaux par personne. Celui qui vous fera quitter votre chaise, celui que vous associez à l'un de nous, ou celui dont vous n'êtes pas fier mais qui fonctionne à tous les coups.</p>
+
+    <form class="panel" id="mForm">
+      <div class="grid g3">
+        <div><label for="m_title">Titre</label><input id="m_title" type="text" required></div>
+        <div><label for="m_artist">Artiste</label><input id="m_artist" type="text" required></div>
+        <div><label for="m_who">Proposé par</label><input id="m_who" type="text" required></div>
+      </div>
+      <div style="margin-top:14px"><label for="m_why">Pourquoi celui-là (facultatif)</label><input id="m_why" type="text"></div>
+      <div class="actions"><button class="btn" type="submit">Ajouter le morceau</button><span class="hint" id="mHint"></span></div>
+    </form>
+
+    <div id="mList"></div>
+  </section>
+</main>
+
+<div class="lightbox" id="lb"><img id="lbImg" alt=""><p id="lbCap"></p>
+  <div class="actions"><button class="btn small" id="lbDl">Télécharger</button><button class="btn small ghost" id="lbX">Fermer</button></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   CONFIGURATION — les deux seules lignes a modifier.
+   Remplacez-les par les valeurs de votre projet Supabase :
+     SB_URL  = Project URL        (https://yapsbzvytseiezusdcxl.supabase.co)
+     SB_KEY  = Publishable key    (sb_publishable_-KM4UKm0sMywWNtjZjxboA_bc-pMAZP)  ou la cle anon
+   ===================================================================== */
+const SB_URL = "https://yapsbzvytseiezusdcxl.supabase.co";
+const SB_KEY = "sb_publishable_-KM4UKm0sMywWNtjZjxboA_bc-pMAZP";
+
+/* ============ stockage (API REST Supabase) ============ */
+const CONFIGURED = !/VOTRE-PROJET|VOTRE-CLE/.test(SB_URL + SB_KEY);
+const API = SB_URL.replace(/\/+$/,"") + "/rest/v1/entries";
+const HDR = {apikey:SB_KEY, "Content-Type":"application/json"};
+let CACHE=new Map(), pulled=false;
+
+function sysWarn(html){const el=document.getElementById("sysWarn");if(el)el.innerHTML=html?`<div class="warn">${html}</div>`:"";}
+async function pull(){
+  if(!CONFIGURED)return;
+  try{
+    const r=await fetch(API+"?select=key,value&key=not.like.phf:*",{headers:HDR});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    CACHE=new Map((await r.json()).map(x=>[x.key,x.value]));
+    pulled=true;sysWarn("");
+  }catch(e){
+    sysWarn("Les reponses ne se chargent pas ("+e.message+"). Verifiez votre connexion, puis rechargez la page. Ce que vous saisissez maintenant risque de ne pas etre enregistre.");
+  }
+}
+async function sGet(k){
+  if(!CONFIGURED)return null;
+  if(k.startsWith("phf:")){
+    try{
+      const r=await fetch(`${API}?select=value&key=eq.${encodeURIComponent(k)}`,{headers:HDR});
+      const rows=await r.json();return rows.length?rows[0].value:null;
+    }catch(e){return null;}
+  }
+  if(!pulled)await pull();
+  return CACHE.has(k)?CACHE.get(k):null;
+}
+async function sSet(k,v){
+  if(!CONFIGURED){toast("Le site n'est pas relie a sa base de donnees.");return false;}
+  try{
+    const r=await fetch(API,{method:"POST",
+      headers:Object.assign({Prefer:"resolution=merge-duplicates"},HDR),
+      body:JSON.stringify({key:k,value:v})});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    if(!k.startsWith("phf:"))CACHE.set(k,v);
+    return true;
+  }catch(e){toast("Enregistrement impossible — rien n'a ete sauvegarde.");return false;}
+}
+async function sDel(k){
+  if(!CONFIGURED)return false;
+  try{
+    const r=await fetch(`${API}?key=eq.${encodeURIComponent(k)}`,{method:"DELETE",headers:HDR});
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    CACHE.delete(k);return true;
+  }catch(e){toast("Suppression impossible.");return false;}
+}
+async function sList(prefix){if(!pulled)await pull();return [...CACHE.keys()].filter(k=>k.startsWith(prefix));}
+async function loadAll(prefix){const out=[];for(const k of await sList(prefix)){const v=CACHE.get(k);if(v)out.push(v);}return out;}
+
+/* ============ utils ============ */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const norm=s=>String(s||"").trim().toLowerCase().replace(/\s+/g," ");
+let toastT;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),2600);}
+
+const AREAS=[
+  ["cannaregio","Cannaregio",45.4440,12.3270],["castello","Castello",45.4360,12.3520],
+  ["sanmarco","San Marco",45.4341,12.3388],["sanpolo","San Polo",45.4380,12.3300],
+  ["santacroce","Santa Croce",45.4390,12.3210],["dorsoduro","Dorsoduro",45.4310,12.3260],
+  ["giudecca","Giudecca",45.4270,12.3230],["murano","Murano",45.4540,12.3530],
+  ["lido","Lido",45.4130,12.3660],["mestre","Mestre / terre ferme",45.4900,12.2420],
+  ["autre","Ailleurs",null,null]
+];
+const GATES=[
+  ["","— à préciser —",null,null],
+  ["marcopolo","Aéroport Marco Polo",45.5053,12.3519],
+  ["treviso","Aéroport de Trévise",45.6484,12.1944],
+  ["santalucia","Gare de Venezia Santa Lucia",45.4412,12.3210],
+  ["mestregare","Gare de Venezia Mestre",45.4823,12.2320],
+  ["piazzaleroma","Piazzale Roma (voiture / bus)",45.4382,12.3182],
+  ["autre","Autrement",null,null]
+];
+const areaName=k=>{const a=AREAS.find(x=>x[0]===k);return a?a[1]:"";};
+const gateName=k=>{const g=GATES.find(x=>x[0]===k);return g?g[1]:"";};
+
+const VENUES=[
+  {key:"aperitif",label:"Apéritif",when:"Vendredi 25 au soir"},
+  {key:"chasse",label:"Départ de la chasse au trésor",when:"Samedi 26 à 11h"},
+  {key:"diner",label:"Dîner",when:"Samedi 26 au soir"},
+  {key:"atelier",label:"Atelier de Silvia",when:"Dimanche 27 à 12h",lat:45.4540,lng:12.3530,addr:"Murano — adresse exacte à confirmer"}
+];
+
+const DL_RSVP=new Date("2026-09-11T23:59:00");
+const DL_MEDIA=new Date("2026-09-20T23:59:00");
+const TRIP_START=new Date("2026-09-25T00:00:00");
+const TRIP_END=new Date("2026-09-27T23:59:00");
+
+/* ============ state ============ */
+let people=[],photos=[],songs=[],venues={},me="";
+
+/* ============ tabs ============ */
+function show(tab){
+  $$("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab));
+  $$("section[role=tabpanel]").forEach(s=>s.classList.toggle("on",s.id==="tab-"+tab));
+  window.scrollTo({top:0,behavior:"instant"});
+  if(tab==="carte") setTimeout(()=>{initMap();if(map)map.invalidateSize();},60);
+  if(pulled) refresh();
+}
+$$("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.tab));
+$$("[data-go]").forEach(b=>b.onclick=()=>show(b.dataset.go));
+
+/* ============ deadlines ============ */
+function renderDeadlines(){
+  const now=new Date();
+  const d0=Math.ceil((TRIP_START-now)/864e5), d1=Math.ceil((DL_RSVP-now)/864e5), d2=Math.ceil((DL_MEDIA-now)/864e5);
+  const txt=n=>n>1?`dans ${n} jours`:n===1?"demain":n===0?"aujourd'hui":`dépassée depuis ${-n} jour${-n>1?"s":""}`;
+  const trip=now>TRIP_END?"c'était le week-end dernier":now>=TRIP_START?"c'est maintenant":d0>1?`dans ${d0} jours`:d0===1?"demain":"aujourd'hui";
+  $("#deadlines").innerHTML=
+   `<div style="border-left-color:var(--lagoon)"><b>Vendredi 25 au dimanche 27 septembre</b><span>Le week-end — ${trip}</span></div>`+
+   `<div${d1<0?' style="border-left-color:var(--brick)"':''}><b>Vendredi 11 septembre</b><span>Chasse au trésor et atelier — ${txt(d1)}</span></div>`+
+   `<div${d2<0?' style="border-left-color:var(--brick)"':''}><b>Dimanche 20 septembre</b><span>Photos et morceaux — ${txt(d2)}</span></div>`;
+}
+
+/* ============ identity ============ */
+$("#meSave").onclick=async()=>{
+  me=$("#meName").value.trim();
+  try{localStorage.setItem("venise.me",me);}catch(e){}
+  $("#meEcho").textContent=me?"Bonjour "+me:"";
+  if(!$("#f_name").value) $("#f_name").value=me;
+  if(!$("#m_who").value) $("#m_who").value=me;
+  toast("C'est noté.");
+};
+
+/* ============ participants ============ */
+function fillSelects(){
+  const A=$("#f_ad"),D=$("#f_dd");
+  [A,D].forEach(i=>{i.min="2026-09-20";i.max="2026-10-05";});
+  const a=$("#f_area");
+  AREAS.forEach(x=>{const o=document.createElement("option");o.value=x[0];o.textContent=x[1];a.appendChild(o);});
+  const vs=$("#venueSel");
+  VENUES.forEach(v=>{const o=document.createElement("option");o.value=v.key;o.textContent=v.label+" — "+v.when;vs.appendChild(o);});
+  ["#f_ap","#f_dp"].forEach(sel=>{
+    const s=$(sel);
+    GATES.forEach(g=>{const o=document.createElement("option");o.value=g[0];o.textContent=g[1];s.appendChild(o);});
+  });
+}
+function readForm(){
+  const g=n=>{const el=document.querySelector(`input[name=${n}]:checked`);return el?el.value:"";};
+  return{
+    name:$("#f_name").value.trim(),hotel:$("#f_hotel").value.trim(),area:$("#f_area").value,
+    addr:$("#f_addr").value.trim(),
+    ad:$("#f_ad").value,at:$("#f_at").value,ap:$("#f_ap").value,an:$("#f_an").value.trim(),
+    dd:$("#f_dd").value,dt:$("#f_dt").value,dp:$("#f_dp").value,dn:$("#f_dn").value.trim(),
+    hunt:g("hunt"),work:g("work"),note:$("#f_note").value.trim()
+  };
+}
+function writeForm(p){
+  $("#f_name").value=p.name||"";$("#f_hotel").value=p.hotel||"";$("#f_area").value=p.area||"";
+  $("#f_addr").value=p.addr||"";$("#f_ad").value=p.ad||"";$("#f_at").value=p.at||"";
+  $("#f_ap").value=p.ap||"";$("#f_an").value=p.an||"";$("#f_dd").value=p.dd||"";$("#f_dt").value=p.dt||"";
+  $("#f_dp").value=p.dp||"";$("#f_dn").value=p.dn||"";$("#f_note").value=p.note||"";
+  $$('input[name=hunt]').forEach(r=>r.checked=r.value===p.hunt);
+  $$('input[name=work]').forEach(r=>r.checked=r.value===p.work);
+  $("#pFormHint").textContent=p.id?"Vous modifiez une fiche existante.":"";
+}
+$("#pForm").onsubmit=async e=>{
+  e.preventDefault();
+  const d=readForm();
+  if(!d.name){toast("Il manque votre nom.");return;}
+  const existing=people.find(p=>norm(p.name)===norm(d.name));
+  const rec=Object.assign({},existing||{},d);
+  rec.id=rec.id||uid();
+  if(existing){rec.lat=existing.lat;rec.lng=existing.lng;}
+  await sSet("p:"+rec.id,rec);
+  await refresh();
+  $("#pFormHint").textContent="";
+  toast(existing?"Fiche mise à jour.":"Fiche enregistrée.");
+};
+$("#pClear").onclick=()=>writeForm({});
+
+function rsvpCell(v){
+  if(v==="oui")return '<span class="yes">oui</span>';
+  if(v==="non")return '<span class="no">non</span>';
+  if(v==="?")return '<span class="maybe">pas encore</span>';
+  return '<span class="tag">sans réponse</span>';
+}
+function whenTxt(d,t){if(!d&&!t)return "—";const dd=d?new Date(d+"T00:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"}):"";return (dd+" "+(t||"")).trim();}
+
+function renderPeople(){
+  const t=$("#pTable");
+  if(!people.length){t.innerHTML='<tbody><tr><td class="empty">Personne n\'a encore rempli sa fiche. Commencez par la vôtre.</td></tr></tbody>';return;}
+  const rows=people.slice().sort((a,b)=>a.name.localeCompare(b.name,"fr")).map(p=>`
+    <tr>
+      <td><b>${esc(p.name)}</b>${p.note?`<br><span class="hint">${esc(p.note)}</span>`:""}</td>
+      <td>${esc(p.hotel||"—")}${p.area?`<br><span class="hint">${esc(areaName(p.area))}</span>`:""}</td>
+      <td>${whenTxt(p.ad,p.at)}<br><span class="hint">${esc(gateName(p.ap))} ${esc(p.an||"")}</span></td>
+      <td>${whenTxt(p.dd,p.dt)}<br><span class="hint">${esc(gateName(p.dp))} ${esc(p.dn||"")}</span></td>
+      <td>${rsvpCell(p.hunt)}</td><td>${rsvpCell(p.work)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn small ghost" data-edit="${p.id}">Modifier</button>
+        <button class="btn small danger" data-del="${p.id}">Supprimer</button></td>
+    </tr>`).join("");
+  t.innerHTML=`<thead><tr><th>Qui</th><th>Où</th><th>Arrivée</th><th>Départ</th><th>Chasse</th><th>Murano</th><th></th></tr></thead><tbody>${rows}</tbody>`;
+  t.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>{writeForm(people.find(p=>p.id===b.dataset.edit));show("reponses");window.scrollTo({top:120});});
+  t.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+    const p=people.find(x=>x.id===b.dataset.del);
+    if(!confirm(`Supprimer la fiche de ${p.name} ?`))return;
+    await sDel("p:"+p.id);await refresh();toast("Fiche supprimée.");
+  });
+}
+
+/* ============ recap ============ */
+function teamsOf(list,size=8){
+  const n=Math.max(1,Math.ceil(list.length/size));
+  const out=Array.from({length:n},()=>[]);
+  list.slice().sort((a,b)=>a.name.localeCompare(b.name,"fr")).forEach((p,i)=>out[i%n].push(p.name));
+  return out;
+}
+function renderRecap(){
+  const hy=people.filter(p=>p.hunt==="oui"),hn=people.filter(p=>p.hunt==="non"),hq=people.filter(p=>!p.hunt||p.hunt==="?");
+  const wy=people.filter(p=>p.work==="oui"),wn=people.filter(p=>p.work==="non"),wq=people.filter(p=>!p.work||p.work==="?");
+  $("#stats").innerHTML=[
+    [people.length,"fiches remplies"],[hy.length,"à la chasse"],[wy.length,"à Murano"],
+    [photos.length,"photos"],[songs.length,"morceaux"]
+  ].map(([n,l])=>`<div><b>${n}</b><span>${l}</span></div>`).join("");
+
+  const names=l=>l.length?l.slice().sort((a,b)=>a.name.localeCompare(b.name,"fr")).map(p=>esc(p.name)).join(", "):"personne";
+
+  const teams=teamsOf(hy);
+  $("#huntBox").innerHTML=`<div class="panel">
+    <p><b>${hy.length}</b> partant${hy.length>1?"s":""} — ${hn.length} absent${hn.length>1?"s":""}, ${hq.length} sans réponse ferme.</p>
+    ${hy.length?`<div class="grid g2">${teams.map((t,i)=>`<div class="team"><h4>Équipe ${i+1} — ${t.length} personne${t.length>1?"s":""}</h4><ol>${t.map(n=>`<li>${esc(n)}</li>`).join("")}</ol></div>`).join("")}</div>
+    <p class="hint" style="margin-top:12px">Répartition indicative, à parts égales. Les rôles sont attribués par l'organisateur.${teams.some(t=>t.length<7||t.length>8)?` Avec ${hy.length} partants, les groupes ne tombent pas juste sur sept ou huit&nbsp;: à arbitrer avec lui.`:""}</p>`:'<p class="empty">Aucun partant pour l\'instant.</p>'}
+    <p class="note" style="margin-top:14px">Ne courent pas&nbsp;: ${names(hn)}.<br>Toujours sans réponse&nbsp;: ${names(hq)}.</p></div>`;
+
+  $("#workBox").innerHTML=`<div class="panel">
+    <p><b>${wy.length}</b> personne${wy.length>1?"s":""} à annoncer à Silvia${wq.length?` — plus ${wq.length} réponse${wq.length>1?"s":""} en attente, soit un maximum de ${wy.length+wq.length}.`:"."}</p>
+    <p>${names(wy)}</p>
+    <p class="note">Ne viennent pas&nbsp;: ${names(wn)}.</p></div>`;
+
+  $("#arrBox").innerHTML=travelBox(people.filter(p=>p.ad||p.at),"ad","at","ap","an",
+    "Deux arrivées à moins de 90 minutes d'écart au même endroit&nbsp;: le bateau depuis Marco Polo se partage.");
+  $("#depBox").innerHTML=travelBox(people.filter(p=>p.dd||p.dt),"dd","dt","dp","dn","");
+
+  const byArea={};
+  people.forEach(p=>{const k=p.area||"inconnu";(byArea[k]=byArea[k]||[]).push(p);});
+  const keys=Object.keys(byArea).sort();
+  $("#areaBox").innerHTML=keys.length?`<div class="panel">${keys.map(k=>`
+      <p style="margin-bottom:.5em"><b>${esc(k==="inconnu"?"Quartier non précisé":areaName(k))}</b> — ${byArea[k].length} personne${byArea[k].length>1?"s":""}<br>
+      <span class="hint">${byArea[k].map(p=>esc(p.name)+(p.hotel?` (${esc(p.hotel)})`:"")).join(" · ")}</span></p>`).join("")}
+      <p class="note">Ceux qui partagent un quartier logent souvent à deux ponts les uns des autres.</p></div>`
+    :'<p class="empty">Aucun logement renseigné.</p>';
+
+  const missing=people.filter(p=>!p.hunt||p.hunt==="?"||!p.work||p.work==="?"||!p.ad||!p.hotel);
+  const noPhoto=people.filter(p=>!photos.some(f=>norm(f.owner)===norm(p.name)));
+  const noSong=people.filter(p=>!songs.some(s=>norm(s.owner)===norm(p.name)));
+  $("#chaseBox").innerHTML=`<div class="panel">
+    <p><b>Fiche incomplète</b> — ${missing.length?names(missing):"personne"}.</p>
+    <p><b>Aucune photo envoyée</b> — ${noPhoto.length?names(noPhoto):"personne"}.</p>
+    <p><b>Aucun morceau proposé</b> — ${noSong.length?names(noSong):"personne"}.</p>
+    <p class="note">Ne sont listés que ceux qui ont commencé une fiche&nbsp;: les invités qui n'ont rien rempli du tout n'apparaissent nulle part sur cette page.</p></div>`;
+}
+function travelBox(list,dK,tK,pK,nK,footer){
+  if(!list.length) return '<p class="empty">Rien de renseigné pour l\'instant.</p>';
+  const sorted=list.slice().sort((a,b)=>((a[dK]||"")+(a[tK]||"")).localeCompare((b[dK]||"")+(b[tK]||"")));
+  const groups=[];
+  sorted.forEach(p=>{
+    const last=groups[groups.length-1];
+    const near=last&&last.gate===(p[pK]||"")&&last.date===(p[dK]||"")&&
+      Math.abs(mins(p[tK])-mins(last.t))<=90&&mins(p[tK])>=0&&last.t;
+    if(near){last.rows.push(p);}
+    else groups.push({gate:p[pK]||"",date:p[dK]||"",t:p[tK]||"",rows:[p]});
+  });
+  return `<div class="panel">${groups.map(g=>`
+    <p style="margin-bottom:.4em"><b>${esc(whenTxt(g.date,g.t))}</b> — ${esc(gateName(g.gate)||"point non précisé")}
+      ${g.rows.length>1?'<span class="tag">bateau à partager</span>':""}<br>
+      <span class="hint">${g.rows.map(p=>esc(p.name)+(p[tK]?` ${esc(p[tK])}`:"")+(p[nK]?` · ${esc(p[nK])}`:"")).join(" &nbsp;|&nbsp; ")}</span></p>`).join("")}
+    ${footer?`<p class="note">${footer}</p>`:""}</div>`;
+}
+function mins(t){if(!t)return -1;const[a,b]=t.split(":").map(Number);return a*60+b;}
+
+/* ============ map ============ */
+let map=null,layerFixed=null,layerHome=null,pinMode=null,tileFail=0,pendingVenue=null;
+function dot(color,size=13){
+  return L.divIcon({className:"",iconSize:[size,size],iconAnchor:[size/2,size/2],
+    html:`<span style="display:block;width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1px rgba(14,43,51,.4)"></span>`});
+}
+function initMap(){
+  if(map||typeof L==="undefined"){
+    if(typeof L==="undefined")$("#mapWarn").innerHTML='<div class="warn">La bibliothèque de carte ne s\'est pas chargée. Tous les lieux restent listés dans le tableau ci-dessous.</div>';
+    return;
+  }
+  map=L.map("map",{scrollWheelZoom:false}).setView([45.4450,12.3400],13);
+  const tiles=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    maxZoom:18,attribution:"© OpenStreetMap"});
+  tiles.on("tileerror",()=>{
+    tileFail++;
+    if(tileFail===3)$("#mapWarn").innerHTML='<div class="warn">Le fond de carte ne se charge pas ici (accès réseau bloqué dans cet aperçu). Les repères et les distances restent exacts, et le tableau ci-dessous donne tous les lieux. Ouvrez le fichier dans un navigateur pour voir la carte complète.</div>';
+  });
+  tiles.addTo(map);
+  layerFixed=L.layerGroup().addTo(map);layerHome=L.layerGroup().addTo(map);
+  map.on("click",onMapClick);
+  drawMap();
+}
+function onMapClick(e){
+  if(!pinMode)return;
+  const{lat,lng}=e.latlng;
+  if(pinMode==="home"){
+    const p=people.find(x=>norm(x.name)===norm(me));
+    if(!p){toast("Remplissez d'abord votre fiche.");pinMode=null;return;}
+    p.lat=lat;p.lng=lng;sSet("p:"+p.id,p).then(refresh);
+    toast("Logement placé.");
+  }else if(pinMode==="venue"&&pendingVenue){
+    const v=Object.assign({},venues[pendingVenue]||{},{lat,lng});
+    venues[pendingVenue]=v;sSet("venue:"+pendingVenue,v).then(refresh);
+    toast("Lieu placé.");
+  }
+  pinMode=null;pendingVenue=null;$("#pinHint").textContent="Cliquez sur un bouton, puis sur la carte.";
+  document.getElementById("map").style.cursor="";
+}
+$("#pinHome").onclick=()=>{
+  if(!me){toast("Indiquez d'abord votre nom en haut de la page.");return;}
+  pinMode="home";$("#pinHint").textContent="Cliquez sur la carte à l'endroit où vous dormez.";
+  document.getElementById("map").style.cursor="crosshair";
+};
+$("#pinVenue").onclick=()=>{
+  const k=$("#venueSel").value;
+  if(!k){toast("Choisissez d'abord un lieu dans la liste.");return;}
+  pendingVenue=k;pinMode="venue";
+  $("#pinHint").textContent="Cliquez sur la carte à l'emplacement du lieu.";
+  document.getElementById("map").style.cursor="crosshair";
+};
+function drawMap(){
+  if(!map)return;
+  layerFixed.clearLayers();layerHome.clearLayers();
+  GATES.filter(g=>g[2]).forEach(g=>{
+    L.marker([g[2],g[3]],{icon:dot("#E0A526")}).addTo(layerFixed).bindPopup(`<b>${esc(g[1])}</b>`);
+  });
+  VENUES.forEach(v=>{
+    const s=venues[v.key]||{};
+    const lat=s.lat!=null?s.lat:v.lat, lng=s.lng!=null?s.lng:v.lng;
+    if(lat==null)return;
+    L.marker([lat,lng],{icon:dot("#1F7A6D",17)}).addTo(layerFixed)
+      .bindPopup(`<b>${esc(v.label)}</b><br>${esc(v.when)}${(s.addr||v.addr)?"<br>"+esc(s.addr||v.addr):""}`);
+  });
+  const pts=[];
+  people.forEach(p=>{
+    let lat=p.lat,lng=p.lng,approx=false;
+    if(lat==null&&p.area){const a=AREAS.find(x=>x[0]===p.area);if(a&&a[2]){lat=a[2];lng=a[3];approx=true;}}
+    if(lat==null)return;
+    pts.push([lat,lng]);
+    L.marker([lat,lng],{icon:dot("#0E2B33",11)}).addTo(layerHome)
+      .bindPopup(`<b>${esc(p.name)}</b><br>${esc(p.hotel||"logement non précisé")}<br>${esc(p.addr||areaName(p.area))}${approx?'<br><i>position approximative — au centre du quartier</i>':""}`);
+  });
+  renderVenueTable();
+}
+function renderVenueTable(){
+  const rows=VENUES.map(v=>{
+    const s=venues[v.key]||{};
+    const placed=(s.lat!=null||v.lat!=null);
+    return `<tr><td><b>${esc(v.label)}</b><br><span class="hint">${esc(v.when)}</span></td>
+      <td>${esc(s.name||"—")}</td>
+      <td>${(s.addr||v.addr)?esc(s.addr||v.addr):'<span class="hint">adresse à préciser</span>'}</td>
+      <td>${placed?'<span class="yes">placé sur la carte</span>':'<span class="hint">pas encore placé</span>'}</td>
+      <td><button class="btn small ghost" data-venue="${v.key}">Renseigner</button></td></tr>`;
+  }).join("");
+  const gates=GATES.filter(g=>g[2]).map(g=>`<tr><td><b>${esc(g[1])}</b><br><span class="hint">point d'arrivée</span></td><td>—</td><td>${g[2].toFixed(4)}, ${g[3].toFixed(4)}</td><td><span class="yes">placé sur la carte</span></td><td></td></tr>`).join("");
+  const t=$("#venueTable");
+  t.innerHTML=`<thead><tr><th>Moment</th><th>Nom du lieu</th><th>Adresse</th><th>Carte</th><th></th></tr></thead><tbody>${rows}${gates}</tbody>`;
+  t.querySelectorAll("[data-venue]").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.venue,cur=venues[k]||{};
+    const name=prompt("Nom du lieu",cur.name||"");if(name===null)return;
+    const addr=prompt("Adresse ou repère",cur.addr||"");if(addr===null)return;
+    const v=Object.assign({},cur,{name:name.trim(),addr:addr.trim()});
+    venues[k]=v;await sSet("venue:"+k,v);await refresh();toast("Lieu enregistré.");
+  });
+}
+
+/* ============ photos ============ */
+const MAXPP=5;
+let queue=[];
+function resize(file,max,q){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const s=Math.min(1,max/Math.max(img.width,img.height));
+        const c=document.createElement("canvas");
+        c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        res(c.toDataURL("image/jpeg",q));
+      };
+      img.onerror=()=>rej(new Error("image illisible"));
+      img.src=fr.result;
+    };
+    fr.onerror=()=>rej(new Error("lecture impossible"));
+    fr.readAsDataURL(file);
+  });
+}
+$("#fileIn").onchange=async e=>{
+  const files=[...e.target.files].filter(f=>f.type.startsWith("image/"));
+  if(!files.length)return;
+  $("#upHint").textContent="Préparation…";
+  queue=[];
+  for(const f of files.slice(0,MAXPP)){
+    try{
+      const thumb=await resize(f,520,.72), full=await resize(f,1800,.86);
+      queue.push({name:f.name,thumb,full,cap:""});
+    }catch(err){toast(`${f.name} n'a pas pu être lue.`);}
+  }
+  renderQueue();
+  $("#upHint").textContent=queue.length?`${queue.length} photo${queue.length>1?"s":""} prête${queue.length>1?"s":""}.`:"Aucune image exploitable.";
+  $("#upBtn").disabled=!queue.length;
+};
+function renderQueue(){
+  $("#queue").innerHTML=queue.map((q,i)=>`<div class="qitem"><img src="${q.thumb}" alt="">
+    <input type="text" data-cap="${i}" placeholder="Année approximative et lieu — ex. « vers 2003, quelque part en Bretagne »" value="${esc(q.cap)}"></div>`).join("");
+  $("#queue").querySelectorAll("[data-cap]").forEach(inp=>inp.oninput=()=>{queue[+inp.dataset.cap].cap=inp.value;});
+}
+$("#upBtn").onclick=async()=>{
+  const owner=(me||$("#f_name").value||"").trim();
+  if(!owner){toast("Indiquez votre nom en haut de la page.");return;}
+  const already=photos.filter(p=>norm(p.owner)===norm(owner)).length;
+  if(already+queue.length>MAXPP){toast(`Cinq photos maximum — vous en avez déjà ${already}.`);return;}
+  $("#upBtn").disabled=true;$("#upHint").textContent="Envoi…";
+  for(const q of queue){
+    const id=uid();
+    await sSet("ph:"+id,{id,owner,cap:q.cap,thumb:q.thumb,at:Date.now()});
+    await sSet("phf:"+id,{full:q.full});
+  }
+  queue=[];$("#fileIn").value="";renderQueue();
+  await refresh();
+  $("#upHint").textContent="";toast("Photos envoyées.");
+};
+function renderGal(){
+  const g=$("#gal");
+  if(!photos.length){g.innerHTML='<p class="empty">Aucune photo pour l\'instant. Ouvrez un tiroir.</p>';return;}
+  g.innerHTML=photos.slice().sort((a,b)=>b.at-a.at).map(p=>`
+    <figure class="shot" style="margin:0">
+      <img src="${p.thumb}" alt="${esc(p.cap||"photo")}" data-open="${p.id}">
+      <figcaption class="cap">${esc(p.cap||"Sans légende")}<span class="by">${esc(p.owner)}</span></figcaption>
+      <div class="row">
+        <button class="btn small ghost" data-dl="${p.id}">Télécharger</button>
+        <button class="btn small danger" data-rm="${p.id}">Retirer</button>
+      </div></figure>`).join("");
+  g.querySelectorAll("[data-open]").forEach(i=>i.onclick=()=>openLb(i.dataset.open));
+  g.querySelectorAll("[data-dl]").forEach(b=>b.onclick=()=>dlPhoto(b.dataset.dl));
+  g.querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{
+    const p=photos.find(x=>x.id===b.dataset.rm);
+    if(!confirm(`Retirer la photo de ${p.owner} ?`))return;
+    await sDel("ph:"+p.id);await sDel("phf:"+p.id);await refresh();toast("Photo retirée.");
+  });
+}
+async function fullOf(id){const f=await sGet("phf:"+id);return f?f.full:null;}
+async function dlPhoto(id){
+  const p=photos.find(x=>x.id===id);const full=await fullOf(id)||p.thumb;
+  const a=document.createElement("a");
+  a.href=full;a.download=`venise-${(p.owner||"invite").replace(/\W+/g,"-").toLowerCase()}-${id}.jpg`;
+  document.body.appendChild(a);a.click();a.remove();
+}
+$("#dlAll").onclick=async()=>{
+  if(!photos.length){toast("Rien à télécharger.");return;}
+  toast(`Téléchargement de ${photos.length} photo${photos.length>1?"s":""}…`);
+  for(const p of photos){await dlPhoto(p.id);await new Promise(r=>setTimeout(r,350));}
+};
+let lbId=null;
+async function openLb(id){
+  lbId=id;const p=photos.find(x=>x.id===id);
+  $("#lbImg").src=p.thumb;$("#lbCap").textContent=(p.cap||"Sans légende")+" — "+p.owner;
+  $("#lb").classList.add("on");
+  const full=await fullOf(id);if(full&&lbId===id)$("#lbImg").src=full;
+}
+$("#lbX").onclick=()=>{$("#lb").classList.remove("on");lbId=null;};
+$("#lbDl").onclick=()=>lbId&&dlPhoto(lbId);
+$("#lb").onclick=e=>{if(e.target.id==="lb"){$("#lb").classList.remove("on");lbId=null;}};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#lb").classList.remove("on");lbId=null;}});
+
+/* ============ playlist ============ */
+const MAXSONG=3;
+$("#mForm").onsubmit=async e=>{
+  e.preventDefault();
+  const owner=$("#m_who").value.trim();
+  const rec={id:uid(),owner,title:$("#m_title").value.trim(),artist:$("#m_artist").value.trim(),why:$("#m_why").value.trim(),at:Date.now()};
+  if(!rec.title||!rec.artist||!owner){toast("Titre, artiste et nom sont nécessaires.");return;}
+  const mine=songs.filter(s=>norm(s.owner)===norm(owner)).length;
+  if(mine>=MAXSONG){toast("Trois morceaux par personne — retirez-en un d'abord.");return;}
+  await sSet("sg:"+rec.id,rec);
+  $("#m_title").value="";$("#m_artist").value="";$("#m_why").value="";
+  await refresh();
+  $("#mHint").textContent=`${mine+1} morceau${mine?"x":""} sur 3 pour ${owner}.`;
+  toast("Morceau ajouté.");
+};
+function renderSongs(){
+  const box=$("#mList");
+  if(!songs.length){box.innerHTML='<p class="empty">La playlist est vide. Ouvrez le bal.</p>';return;}
+  const by={};songs.forEach(s=>{(by[s.owner]=by[s.owner]||[]).push(s);});
+  const owners=Object.keys(by).sort((a,b)=>a.localeCompare(b,"fr"));
+  box.innerHTML=`<div class="panel"><p class="hint" style="margin:0 0 10px">${songs.length} morceau${songs.length>1?"x":""} proposé${songs.length>1?"s":""} par ${owners.length} personne${owners.length>1?"s":""}.</p>
+  ${owners.map(o=>`<h4 style="font-family:var(--sans);margin:18px 0 2px">${esc(o)}</h4>
+    ${by[o].map((s,i)=>`<div class="track"><span class="n">${i+1}</span>
+      <span class="t"><b>${esc(s.title)}</b> — ${esc(s.artist)}${s.why?`<span class="why">${esc(s.why)}</span>`:""}</span>
+      <button class="btn small danger" data-sd="${s.id}">Retirer</button></div>`).join("")}`).join("")}</div>`;
+  box.querySelectorAll("[data-sd]").forEach(b=>b.onclick=async()=>{
+    await sDel("sg:"+b.dataset.sd);await refresh();toast("Morceau retiré.");
+  });
+}
+
+/* ============ refresh ============ */
+async function refresh(){
+  await pull();
+  people=await loadAll("p:");
+  photos=await loadAll("ph:");
+  songs=await loadAll("sg:");
+  const vk=await sList("venue:");
+  venues={};for(const k of vk){const v=await sGet(k);if(v)venues[k.slice(6)]=v;}
+  $("#cP").textContent=people.length?`(${people.length})`:"";
+  $("#cF").textContent=photos.length?`(${photos.length})`:"";
+  $("#cM").textContent=songs.length?`(${songs.length})`:"";
+  renderPeople();renderRecap();renderGal();renderSongs();
+  if(map)drawMap();else renderVenueTable();
+}
+
+/* ============ boot ============ */
+(async function(){
+  fillSelects();renderDeadlines();
+  if(!CONFIGURED){
+    sysWarn("Le site n'est pas encore relié à sa base de données. Ouvrez <code>index.html</code>, renseignez <code>SB_URL</code> et <code>SB_KEY</code> en haut du script, puis republiez. Tant que ce n'est pas fait, rien ne sera enregistré.");
+  }
+  try{me=localStorage.getItem("venise.me")||"";}catch(e){me="";}
+  if(me){$("#meName").value=me;$("#meEcho").textContent="Bonjour "+me;$("#f_name").value=me;$("#m_who").value=me;}
+  await refresh();
+})();
+</script>
